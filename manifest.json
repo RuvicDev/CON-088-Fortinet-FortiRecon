@@ -1,0 +1,29 @@
+{
+  "id": "fortirecon",
+  "name": "Fortinet FortiRecon",
+  "name_en": "Fortinet FortiRecon",
+  "version": "1.0.0",
+  "description": "Gestión de superficie de ataque externa con FortiRecon: activos expuestos, riesgos, credenciales comprometidas y hallazgos",
+  "description_en": "External attack surface management with FortiRecon: exposed assets, risks, compromised credentials and findings",
+  "category": "Seguridad / ASM",
+  "category_en": "Security / ASM",
+  "keywords": ["fortirecon", "fortinet", "asm", "easm", "attack surface", "credenciales comprometidas", "riesgos", "hallazgos"],
+  "icon": "icon.svg",
+  "library": {"package": "ruvic-fortirecon-connector", "install": "pip install git+https://github.com/tu-org/conector-fortirecon.git#subdirectory=lib", "import_name": "ruvic_fortirecon_connector"},
+  "auth_modes": [{"id": "api_key", "label": "API Key", "fields": [
+    {"key": "base_url", "label": "URL base de FortiRecon", "type": "text", "required": true, "placeholder": "https://fortirecon-api.example.com"},
+    {"key": "api_key", "label": "API Key", "type": "password", "secret": true, "required": true},
+    {"key": "org_id", "label": "Organization ID", "type": "text", "required": true},
+    {"key": "verify_ssl", "label": "Verificar SSL", "type": "boolean", "required": false, "default": "true"},
+    {"key": "timeout", "label": "Timeout (segundos)", "type": "number", "required": false, "default": "20"},
+    {"key": "max_results", "label": "Máximo de resultados", "type": "number", "required": false, "default": "100"},
+    {"key": "exposed_assets_path_template", "label": "Path activos expuestos", "type": "text", "required": false, "default": "/easm/{org_id}/exposed_services"},
+    {"key": "risks_path_template", "label": "Path riesgos", "type": "text", "required": false, "default": "/easm/{org_id}/issues"},
+    {"key": "credentials_path_template", "label": "Path credenciales comprometidas", "type": "text", "required": false, "default": "/asm/{org_id}/leaked_credentials"},
+    {"key": "findings_path_template", "label": "Path hallazgos", "type": "text", "required": false, "default": "/easm/{org_id}/issues"}
+  ]}],
+  "env_prefix": "RUVIC_FORTIRECON_",
+  "operations": ["security.get_exposed_assets", "security.get_risks", "security.get_compromised_credentials", "security.get_findings"],
+  "test_connection": true,
+  "docs": {"skill": "SKILL.md", "permissions_note": "La API Key necesita permisos de lectura sobre FortiRecon ASM/EASM, issues/hallazgos, activos expuestos y credenciales filtradas de la organización configurada."}
+}
