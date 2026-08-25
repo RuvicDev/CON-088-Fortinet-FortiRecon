@@ -38,7 +38,8 @@ class FortireconClient:
         return path if path.startswith("/") else f"/{path}"
 
     def _headers(self) -> dict[str, str]:
-        return {"Authorization": self.config.api_key, "Accept": "application/json", "Content-Type": "application/json"}
+        scheme = f"{self.config.auth_scheme} " if self.config.auth_scheme else ""
+        return {"Authorization": f"{scheme}{self.config.api_key}".strip(), "Accept": "application/json", "Content-Type": "application/json"}
 
     def _handle_response(self, response: Response) -> Any:
         if response.status_code in {401, 403}:
@@ -77,7 +78,8 @@ class FortireconClient:
                     break
         if not isinstance(data, list):
             raise FortireconDataError("La respuesta FortiRecon no tiene formato de lista esperado.")
-        resolved_limit = max(1, min(int(limit or self.config.max_results), self.config.max_results))
+        effective_limit = self.config.max_results if limit is None else int(limit)
+        resolved_limit = max(1, min(effective_limit, self.config.max_results))
         return [dict(item) if isinstance(item, dict) else {"value": item} for item in data[:resolved_limit]]
 
     def ping(self) -> bool:
@@ -105,13 +107,23 @@ class FortireconClient:
             >>> client.get_exposed_assets(limit=20)
             [{'host': 'vpn.example.com', 'port': 443}]
         """
-        data = self._request(self._path(self.config.exposed_assets_path_template), {"type": asset_type, "limit": limit or self.config.max_results})
-        rows = self._extract_items(data, limit)
+        effective_limit = self.config.max_results if limit is None else int(limit)
+        resolved_limit = max(1, min(effective_limit, self.config.max_results))
+        data = self._request(self._path(self.config.exposed_assets_path_template), {"type": asset_type, "limit": resolved_limit})
+        rows = self._extract_items(data, resolved_limit)
         self._logger.info("Consultados %d activos expuestos FortiRecon", len(rows))
         return rows
 
     def get_risks(self, severity: str | None = None, limit: int | None = None) -> list[dict[str, Any]]:
         """Consulta riesgos de exposición en FortiRecon.
+
+        Nota: por defecto usa el mismo endpoint que get_findings()
+        (`/easm/{org_id}/issues`). Salvo que el tenant tenga configurado
+        RUVIC_FORTIRECON_RISKS_PATH_TEMPLATE con una ruta distinta a
+        RUVIC_FORTIRECON_FINDINGS_PATH_TEMPLATE, ambos métodos devuelven
+        los mismos datos base; solo se diferencian por los filtros que
+        aplica el cliente (severity aquí vs. severity+status en
+        get_findings()).
 
         Args:
             severity: severidad opcional si la API lo soporta.
@@ -122,8 +134,10 @@ class FortireconClient:
             >>> client.get_risks(severity="high", limit=10)
             [{'severity': 'high', 'title': 'Exposed admin service'}]
         """
-        data = self._request(self._path(self.config.risks_path_template), {"severity": severity, "limit": limit or self.config.max_results})
-        rows = self._extract_items(data, limit)
+        effective_limit = self.config.max_results if limit is None else int(limit)
+        resolved_limit = max(1, min(effective_limit, self.config.max_results))
+        data = self._request(self._path(self.config.risks_path_template), {"severity": severity, "limit": resolved_limit})
+        rows = self._extract_items(data, resolved_limit)
         self._logger.info("Consultados %d riesgos FortiRecon", len(rows))
         return rows
 
@@ -141,13 +155,23 @@ class FortireconClient:
             >>> client.get_compromised_credentials(domain="example.com", limit=10)
             [{'email': 'usuario@example.com', 'source': 'breach'}]
         """
-        data = self._request(self._path(self.config.credentials_path_template), {"domain": domain, "from": start_date, "to": end_date, "limit": limit or self.config.max_results})
-        rows = self._extract_items(data, limit)
+        effective_limit = self.config.max_results if limit is None else int(limit)
+        resolved_limit = max(1, min(effective_limit, self.config.max_results))
+        data = self._request(self._path(self.config.credentials_path_template), {"domain": domain, "from": start_date, "to": end_date, "limit": resolved_limit})
+        rows = self._extract_items(data, resolved_limit)
         self._logger.info("Consultados %d registros de credenciales FortiRecon", len(rows))
         return rows
 
     def get_findings(self, severity: str | None = None, status: str | None = None, limit: int | None = None) -> list[dict[str, Any]]:
         """Consulta hallazgos/issues de FortiRecon ASM.
+
+        Nota: por defecto usa el mismo endpoint que get_risks()
+        (`/easm/{org_id}/issues`). Salvo que el tenant tenga configurado
+        RUVIC_FORTIRECON_FINDINGS_PATH_TEMPLATE con una ruta distinta a
+        RUVIC_FORTIRECON_RISKS_PATH_TEMPLATE, ambos métodos devuelven
+        los mismos datos base; solo se diferencian por los filtros que
+        aplica el cliente (severity+status aquí vs. severity en
+        get_risks()).
 
         Args:
             severity: severidad opcional.
@@ -159,7 +183,9 @@ class FortireconClient:
             >>> client.get_findings(severity="critical", status="active")
             [{'id': '...', 'severity': 'critical'}]
         """
-        data = self._request(self._path(self.config.findings_path_template), {"severity": severity, "status": status, "limit": limit or self.config.max_results})
-        rows = self._extract_items(data, limit)
+        effective_limit = self.config.max_results if limit is None else int(limit)
+        resolved_limit = max(1, min(effective_limit, self.config.max_results))
+        data = self._request(self._path(self.config.findings_path_template), {"severity": severity, "status": status, "limit": resolved_limit})
+        rows = self._extract_items(data, resolved_limit)
         self._logger.info("Consultados %d hallazgos FortiRecon", len(rows))
         return rows

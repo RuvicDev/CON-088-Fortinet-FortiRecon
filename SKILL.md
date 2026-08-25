@@ -23,6 +23,7 @@ El código generado NUNCA hardcodea credenciales. Siempre se leen de variables d
 | `RUVIC_FORTIRECON_BASE_URL` | URL base HTTPS de la API FortiRecon |
 | `RUVIC_FORTIRECON_API_KEY` | API Key para Authorization |
 | `RUVIC_FORTIRECON_ORG_ID` | ID de organización FortiRecon |
+| `RUVIC_FORTIRECON_AUTH_SCHEME` | Prefijo del header Authorization (default `Bearer`, opcional dejar vacío) |
 | `RUVIC_FORTIRECON_VERIFY_SSL` | Verificación SSL opcional |
 | `RUVIC_FORTIRECON_TIMEOUT` | Timeout opcional |
 | `RUVIC_FORTIRECON_MAX_RESULTS` | Máximo de resultados |
@@ -55,6 +56,8 @@ risks = client.get_risks(severity="high", limit=20)
 for risk in risks:
     print(risk)
 ```
+
+Nota: por defecto `get_risks()` y `get_findings()` (Capacidad 4) apuntan al mismo endpoint (`/easm/{org_id}/issues`). Salvo que el tenant tenga configurados `RUVIC_FORTIRECON_RISKS_PATH_TEMPLATE` y `RUVIC_FORTIRECON_FINDINGS_PATH_TEMPLATE` con rutas distintas, ambas capacidades devuelven los mismos datos base; solo se diferencian por los filtros del lado del cliente (severity vs. severity+status). No asumas que son fuentes de datos independientes sin confirmarlo con el tenant.
 
 ## Capacidad 3 — Consultar credenciales comprometidas
 
@@ -95,3 +98,4 @@ except FortireconDataError as exc:
 3. Usa límites razonables en consultas.
 4. Si la versión del tenant usa rutas diferentes, ajusta los path templates en la configuración del conector.
 5. Trata credenciales comprometidas como información sensible; no las expongas innecesariamente en logs.
+6. El esquema `Bearer` del header Authorization no está confirmado específicamente para FortiRecon (sí lo está para otros productos Fortinet). Verifícalo en la primera prueba real: si falla con 401, prueba `RUVIC_FORTIRECON_AUTH_SCHEME` vacío.

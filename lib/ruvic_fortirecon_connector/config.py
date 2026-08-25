@@ -25,6 +25,7 @@ class FortireconConfig:
     base_url: str
     api_key: str
     org_id: str
+    auth_scheme: str = "Bearer"
     verify_ssl: bool = True
     timeout: int = 20
     max_results: int = 100
@@ -64,10 +65,13 @@ class FortireconConfig:
             raise FortireconConfigError("RUVIC_FORTIRECON_TIMEOUT debe estar entre 1 y 120 segundos.")
         if max_results <= 0 or max_results > 1000:
             raise FortireconConfigError("RUVIC_FORTIRECON_MAX_RESULTS debe estar entre 1 y 1000.")
+        auth_scheme_raw = os.environ.get(f"{ENV_PREFIX}AUTH_SCHEME")
+        auth_scheme = "Bearer" if auth_scheme_raw is None else auth_scheme_raw.strip()
         return cls(
             base_url=base_url,
             api_key=api_key,
             org_id=org_id,
+            auth_scheme=auth_scheme,
             verify_ssl=verify_ssl,
             timeout=timeout,
             max_results=max_results,

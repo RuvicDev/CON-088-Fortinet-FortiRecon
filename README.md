@@ -30,6 +30,7 @@ pip install git+https://github.com/tu-org/conector-fortirecon.git#subdirectory=l
 | `RUVIC_FORTIRECON_BASE_URL` | Sí | URL base HTTPS de la API | — |
 | `RUVIC_FORTIRECON_API_KEY` | Sí | API Key para header Authorization | — |
 | `RUVIC_FORTIRECON_ORG_ID` | Sí | ID de organización | — |
+| `RUVIC_FORTIRECON_AUTH_SCHEME` | No | Prefijo del header Authorization (ej. `Bearer <api_key>`). Déjalo vacío (`""`) para enviar solo la API Key sin prefijo | `Bearer` |
 | `RUVIC_FORTIRECON_VERIFY_SSL` | No | Verificar certificado SSL | `true` |
 | `RUVIC_FORTIRECON_TIMEOUT` | No | Timeout de red | `20` |
 | `RUVIC_FORTIRECON_MAX_RESULTS` | No | Máximo de resultados | `100` |
@@ -41,6 +42,10 @@ pip install git+https://github.com/tu-org/conector-fortirecon.git#subdirectory=l
 ## Notas de API
 
 La documentación pública de FortiRecon es limitada y algunos endpoints pueden variar por versión/tenant. Por eso los path templates son configurables. Referencias de integraciones públicas mencionan endpoints como `/easm/{org_id}/exposed_services`, `/easm/{org_id}/issues` y `/easm/{org_id}/assets/domains`.
+
+**Esquema de autenticación por verificar:** no hay documentación pública confirmada de que FortiRecon use específicamente `Authorization: Bearer <api_key>`; se eligió `Bearer` como default porque es el esquema documentado en el resto de productos Fortinet. En la primera prueba real contra un tenant, si la autenticación falla con 401 usando el default, prueba dejando `RUVIC_FORTIRECON_AUTH_SCHEME` vacío para enviar la API Key sin prefijo.
+
+**`get_risks()` y `get_findings()` comparten endpoint por defecto:** ambos apuntan a `/easm/{org_id}/issues` salvo que se configuren `RUVIC_FORTIRECON_RISKS_PATH_TEMPLATE` y `RUVIC_FORTIRECON_FINDINGS_PATH_TEMPLATE` con rutas distintas para el tenant. Con la configuración por defecto, ambas capacidades devuelven los mismos datos base y solo se diferencian por los filtros aplicados del lado del cliente (severity vs. severity+status).
 
 ## Pruebas
 

@@ -14,6 +14,7 @@
     {"key": "base_url", "label": "URL base de FortiRecon", "type": "text", "required": true, "placeholder": "https://fortirecon-api.example.com"},
     {"key": "api_key", "label": "API Key", "type": "password", "secret": true, "required": true},
     {"key": "org_id", "label": "Organization ID", "type": "text", "required": true},
+    {"key": "auth_scheme", "label": "Esquema de autenticación (header Authorization)", "type": "text", "required": false, "default": "Bearer", "help_text": "Prefijo del header Authorization (ej. 'Bearer <api_key>'). No hay documentación pública confirmada para FortiRecon específicamente; se usa 'Bearer' porque es el esquema documentado en el resto de productos Fortinet. Si la autenticación falla con 401 usando el default, prueba dejando este campo vacío para enviar solo la API Key sin prefijo."},
     {"key": "verify_ssl", "label": "Verificar SSL", "type": "boolean", "required": false, "default": "true"},
     {"key": "timeout", "label": "Timeout (segundos)", "type": "number", "required": false, "default": "20"},
     {"key": "max_results", "label": "Máximo de resultados", "type": "number", "required": false, "default": "100"},
